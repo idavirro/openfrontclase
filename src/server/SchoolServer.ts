@@ -19,8 +19,10 @@ interface SchoolGameState {
     name: string;
     flag: string;
     isSpectator: boolean;
+    isLobbyLeader?: boolean;
   }>;
   gameId: string | null;
+  config?: any;
 }
 
 class SchoolGameServer {
@@ -29,7 +31,7 @@ class SchoolGameServer {
   private wss: WebSocketServer;
   private gameManager: GameManager;
   private gameState: SchoolGameState;
-  private clients: Map<any, { id: string; name: string; flag: string; isSpectator: boolean }>;
+  private clients: Map<any, { id: string; name: string; flag: string; isSpectator: boolean; isLobbyLeader?: boolean }>;
   private logger: any;
   
   constructor() {
@@ -125,6 +127,10 @@ class SchoolGameServer {
         this.handleSpectateGame(ws, message.data);
         break;
         
+      case 'startGame':
+        this.handleStartGame(ws, message.data);
+        break;
+        
       case 'leaveGame':
         this.handleLeaveGame(ws);
         break;
@@ -160,20 +166,32 @@ class SchoolGameServer {
     
     // Add client
     const clientId = Math.random().toString(36).substr(2, 9);
+    const isFirstPlayer = this.clients.size === 0;
+    
     this.clients.set(ws, {
       id: clientId,
       name: playerName,
       flag: playerFlag || 'us',
-      isSpectator: false
+      isSpectator: false,
+      isLobbyLeader: isFirstPlayer
     });
     
     this.updateGameState();
     this.broadcastGameState();
     
-    // Start game if we have enough players (2+ for school edition)
-    if (this.gameState.playerCount >= 2 && this.gameState.status === 'waiting') {
-      this.startGame();
-    }
+    // Notify others of new player
+    this.broadcastToOthers(ws, {
+      type: 'playerJoined',
+      data: { 
+        player: { 
+          id: clientId, 
+          name: playerName, 
+          flag: playerFlag || 'us', 
+          isSpectator: false,
+          isLobbyLeader: isFirstPlayer
+        } 
+      }
+    });
     
     console.log(`Player ${playerName} joined the game`);
   }
@@ -186,26 +204,88 @@ class SchoolGameServer {
       id: clientId,
       name: playerName || 'Spectator',
       flag: playerFlag || 'us',
-      isSpectator: true
+      isSpectator: true,
+      isLobbyLeader: false
     });
     
     this.updateGameState();
     this.broadcastGameState();
     
+    // Notify others of new spectator
+    this.broadcastToOthers(ws, {
+      type: 'playerJoined',
+      data: { 
+        player: { 
+          id: clientId, 
+          name: playerName || 'Spectator', 
+          flag: playerFlag || 'us', 
+          isSpectator: true,
+          isLobbyLeader: false
+        } 
+      }
+    });
+    
     console.log(`Spectator ${playerName || 'Spectator'} joined`);
+  }
+  
+  private handleStartGame(ws: any, data: any) {
+    const client = this.clients.get(ws);
+    if (!client || !client.isLobbyLeader) {
+      this.sendToClient(ws, {
+        type: 'error',
+        data: { message: 'Only the lobby leader can start the game' }
+      });
+      return;
+    }
+    
+    if (this.gameState.playerCount < 2) {
+      this.sendToClient(ws, {
+        type: 'error',
+        data: { message: 'Need at least 2 players to start the game' }
+      });
+      return;
+    }
+    
+    this.gameState.config = data.config;
+    this.startGame();
   }
   
   private handleLeaveGame(ws: any) {
     const client = this.clients.get(ws);
     if (client) {
       console.log(`${client.name} left the game`);
+      const wasLobbyLeader = client.isLobbyLeader;
+      
       this.clients.delete(ws);
+      
+      // If lobby leader left, assign new leader
+      if (wasLobbyLeader && this.clients.size > 0) {
+        this.assignNewLobbyLeader();
+      }
+      
       this.updateGameState();
       this.broadcastGameState();
+      
+      // Notify others of player leaving
+      this.broadcastToOthers(ws, {
+        type: 'playerLeft',
+        data: { player: client }
+      });
       
       // If no players left, reset game
       if (this.gameState.playerCount === 0) {
         this.resetGame();
+      }
+    }
+  }
+  
+  private assignNewLobbyLeader() {
+    // Find first non-spectator to be new leader
+    for (const [ws, client] of this.clients.entries()) {
+      if (!client.isSpectator) {
+        client.isLobbyLeader = true;
+        console.log(`${client.name} is now the lobby leader`);
+        break;
       }
     }
   }
@@ -223,12 +303,15 @@ class SchoolGameServer {
       id: client.id,
       name: client.name,
       flag: client.flag,
-      isSpectator: client.isSpectator
+      isSpectator: client.isSpectator,
+      isLobbyLeader: client.isLobbyLeader || false
     }));
   }
   
   private startGame() {
     console.log('Starting game with', this.gameState.playerCount, 'players');
+    console.log('Game config:', this.gameState.config);
+    
     this.gameState.status = 'starting';
     this.gameState.gameId = Math.random().toString(36).substr(2, 9);
     
@@ -238,6 +321,16 @@ class SchoolGameServer {
     setTimeout(() => {
       this.gameState.status = 'running';
       this.broadcastGameState();
+      
+      // Notify all clients that game has started
+      this.broadcast({
+        type: 'gameStarted',
+        data: {
+          gameId: this.gameState.gameId,
+          config: this.gameState.config,
+          players: this.gameState.players.filter(p => !p.isSpectator)
+        }
+      });
       
       // Auto-end game after 10 minutes for demo purposes
       setTimeout(() => {
@@ -265,15 +358,27 @@ class SchoolGameServer {
     this.broadcastGameState();
   }
   
+  private broadcast(message: any) {
+    this.clients.forEach((client, ws) => {
+      this.sendToClient(ws, message);
+    });
+  }
+  
+  private broadcastToOthers(excludeWs: any, message: any) {
+    this.clients.forEach((client, ws) => {
+      if (ws !== excludeWs) {
+        this.sendToClient(ws, message);
+      }
+    });
+  }
+  
   private broadcastGameState() {
     const message = {
       type: 'gameState',
       data: this.gameState
     };
     
-    this.clients.forEach((client, ws) => {
-      this.sendToClient(ws, message);
-    });
+    this.broadcast(message);
   }
   
   private sendToClient(ws: any, message: any) {

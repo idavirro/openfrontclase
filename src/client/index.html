@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no"
     />
-    <title>OpenFront (ALPHA)</title>
+    <title id="page-title">OpenFront (ALPHA)</title>
     <link rel="manifest" href="../../resources/manifest.json" />
     <link
       rel="icon"
@@ -261,6 +261,17 @@
           block
         ></o-button>
 
+        <!-- School Edition Button -->
+        <o-button
+          id="school-mode-button"
+          title="School Edition"
+          translationKey="main.school_edition"
+          block
+          style="background: linear-gradient(135deg, #10b981, #059669); display: none;"
+        >
+          🏫 School Edition
+        </o-button>
+
         <o-button
           id="help-button"
           title="Instructions"
@@ -416,6 +427,9 @@
     <game-left-sidebar></game-left-sidebar>
     <flag-input-modal></flag-input-modal>
     <performance-overlay></performance-overlay>
+    
+    <!-- School Edition Modal -->
+    <school-lobby-modal></school-lobby-modal>
     <div
       id="language-modal"
       class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex justify-center items-center"

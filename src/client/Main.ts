@@ -32,6 +32,8 @@ import { TokenLoginModal } from "./TokenLoginModal";
 import { SendKickPlayerIntentEvent } from "./Transport";
 import { UserSettingModal } from "./UserSettingModal";
 import "./UsernameInput";
+import "./SchoolLobbyModal";
+import { SchoolLobbyModal } from "./SchoolLobbyModal";
 import { UsernameInput } from "./UsernameInput";
 import {
   generateCryptoRandomUUID,
@@ -103,6 +105,7 @@ class Client {
   private patternsModal: TerritoryPatternsModal;
   private tokenLoginModal: TokenLoginModal;
   private matchmakingModal: MatchmakingModal;
+  private schoolLobbyModal: SchoolLobbyModal;
 
   private gutterAds: GutterAds;
 
@@ -196,6 +199,19 @@ class Client {
       }
     });
 
+    // School Edition Button
+    const schoolModeButton = document.getElementById("school-mode-button");
+    if (schoolModeButton) {
+      // Show school button if running on localhost (development) or if school server is detected
+      if (window.location.hostname === 'localhost' || window.location.port === '3001') {
+        schoolModeButton.style.display = 'block';
+      }
+      
+      schoolModeButton.addEventListener("click", () => {
+        this.schoolLobbyModal.open();
+      });
+    }
+
     const hlpModal = document.querySelector("help-modal") as HelpModal;
     if (!hlpModal || !(hlpModal instanceof HelpModal)) {
       console.warn("Help modal element not found");
@@ -267,6 +283,16 @@ class Client {
       !(this.matchmakingModal instanceof MatchmakingModal)
     ) {
       console.warn("Matchmaking modal element not found");
+    }
+
+    this.schoolLobbyModal = document.querySelector(
+      "school-lobby-modal",
+    ) as any;
+    if (
+      !this.schoolLobbyModal ||
+      !(this.schoolLobbyModal instanceof SchoolLobbyModal)
+    ) {
+      console.warn("School lobby modal element not found");
     }
 
     const onUserMe = async (userMeResponse: UserMeResponse | false) => {
