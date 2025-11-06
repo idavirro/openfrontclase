@@ -33,14 +33,14 @@ else
     echo "✅ Dependencies already installed"
 fi
 
-# Build the school edition
-echo "🏗️  Building school edition..."
-npm run school:build
+# Build the application
+echo "🏗️  Building OpenFront..."
+npm run build-prod
 if [ $? -ne 0 ]; then
-    echo "❌ Failed to build school edition"
+    echo "❌ Failed to build application"
     exit 1
 fi
-echo "✅ School edition built successfully"
+echo "✅ Application built successfully"
 
 # Set environment variables for production
 export NODE_ENV=production
