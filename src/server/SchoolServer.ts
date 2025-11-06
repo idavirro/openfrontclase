@@ -6,7 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { GameManager } from "./GameManager";
 import { getServerConfigFromServer } from "../core/configuration/ConfigLoader";
-import { Logger } from "./Logger";
+import { logger } from "./Logger";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,7 +38,7 @@ class SchoolGameServer {
     this.wss = new WebSocketServer({ server: this.server });
     
     // Initialize logger and config for GameManager
-    this.logger = Logger.create("SchoolServer");
+    this.logger = logger.child({ component: "SchoolServer" });
     const config = getServerConfigFromServer();
     this.gameManager = new GameManager(config, this.logger);
     this.clients = new Map();
