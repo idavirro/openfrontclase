@@ -6,6 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { GameManager } from "./GameManager";
 import { getServerConfigFromServer } from "../core/configuration/ConfigLoader";
+import { Logger } from "./Logger";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,12 +30,17 @@ class SchoolGameServer {
   private gameManager: GameManager;
   private gameState: SchoolGameState;
   private clients: Map<any, { id: string; name: string; flag: string; isSpectator: boolean }>;
+  private logger: any;
   
   constructor() {
     this.app = express();
     this.server = createServer(this.app);
     this.wss = new WebSocketServer({ server: this.server });
-    this.gameManager = new GameManager();
+    
+    // Initialize logger and config for GameManager
+    this.logger = Logger.create("SchoolServer");
+    const config = getServerConfigFromServer();
+    this.gameManager = new GameManager(config, this.logger);
     this.clients = new Map();
     
     this.gameState = {

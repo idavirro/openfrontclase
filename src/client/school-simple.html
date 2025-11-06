@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="en" class="h-full" translate="no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <title>OpenFront - School Edition</title>
+    <link rel="manifest" href="../../resources/manifest.json" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="../../resources/images/Favicon.svg"
+    />
+    <style>
+      /* Simple inline styles for immediate functionality */
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .container {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 2rem;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(10px);
+      }
+      .title {
+        text-align: center;
+        color: #333;
+        margin-bottom: 2rem;
+        font-size: 2rem;
+        font-weight: bold;
+      }
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+      .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #374151;
+      }
+      .form-input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+      }
+      .form-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+      .btn {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 0.5rem;
+      }
+      .btn-primary {
+        background: #3b82f6;
+        color: white;
+      }
+      .btn-primary:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+      }
+      .btn-secondary {
+        background: #6b7280;
+        color: white;
+      }
+      .btn-secondary:hover {
+        background: #4b5563;
+        transform: translateY(-1px);
+      }
+      .status {
+        text-align: center;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: 8px;
+        font-weight: 500;
+      }
+      .status-info {
+        background: #dbeafe;
+        color: #1e40af;
+        border: 1px solid #93c5fd;
+      }
+      .status-success {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #86efac;
+      }
+      .status-error {
+        background: #fee2e2;
+        color: #dc2626;
+        border: 1px solid #fca5a5;
+      }
+      .players-list {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+      }
+      .player-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem;
+        margin: 0.25rem 0;
+        background: white;
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .flag-display {
+        width: 24px;
+        height: 16px;
+        margin-right: 0.5rem;
+        border-radius: 2px;
+        font-size: 18px;
+      }
+      #game-area {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        color: #fff;
+        z-index: 1000;
+      }
+      .game-header {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 10px;
+        border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .leave-btn {
+        background: #dc2626;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="title">🎮 OpenFront School</h1>
+      
+      <div id="game-status" class="status status-info">
+        Ready to connect...
+      </div>
+
+      <div id="setup-form">
+        <div class="form-group">
+          <label for="username" class="form-label">Your Name</label>
+          <input 
+            type="text" 
+            id="username" 
+            class="form-input" 
+            placeholder="Enter your name"
+            maxlength="20"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="flag" class="form-label">Choose Your Flag</label>
+          <select id="flag" class="form-input">
+            <option value="us">🇺🇸 United States</option>
+            <option value="gb">🇬🇧 United Kingdom</option>
+            <option value="fr">🇫🇷 France</option>
+            <option value="de">🇩🇪 Germany</option>
+            <option value="it">🇮🇹 Italy</option>
+            <option value="es">🇪🇸 Spain</option>
+            <option value="ca">🇨🇦 Canada</option>
+            <option value="au">🇦🇺 Australia</option>
+            <option value="jp">🇯🇵 Japan</option>
+            <option value="br">🇧🇷 Brazil</option>
+            <option value="mx">🇲🇽 Mexico</option>
+            <option value="in">🇮🇳 India</option>
+            <option value="cn">🇨🇳 China</option>
+            <option value="ru">🇷🇺 Russia</option>
+          </select>
+        </div>
+
+        <button id="connect-btn" class="btn btn-primary">
+          Connect to Game
+        </button>
+        
+        <button id="join-game" class="btn btn-primary" style="display:none;">
+          Join Game
+        </button>
+        
+        <button id="spectate-game" class="btn btn-secondary" style="display:none;">
+          Spectate Game
+        </button>
+      </div>
+
+      <div id="players-section" style="display: none;">
+        <h3>Players in Game</h3>
+        <div id="players-list" class="players-list">
+          <!-- Players will be populated here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Simple Game Area -->
+    <div id="game-area">
+      <div class="game-header">
+        <div>OpenFront School Edition - In Game</div>
+        <button id="leave-game" class="leave-btn">Leave Game</button>
+      </div>
+      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+        <h2>🎮 Game Running!</h2>
+        <p>This is a simplified demo version.</p>
+        <p>The full game engine would run here.</p>
+      </div>
+    </div>
+
+    <script>
+      // Simple client for school edition
+      let ws = null;
+      let isConnected = false;
+      let isInGame = false;
+      let currentPlayers = [];
+
+      // DOM elements
+      const statusEl = document.getElementById('game-status');
+      const setupFormEl = document.getElementById('setup-form');
+      const playersSection = document.getElementById('players-section');
+      const playersListEl = document.getElementById('players-list');
+      const usernameInput = document.getElementById('username');
+      const flagSelect = document.getElementById('flag');
+      const connectBtn = document.getElementById('connect-btn');
+      const joinBtn = document.getElementById('join-game');
+      const spectateBtn = document.getElementById('spectate-game');
+      const leaveBtn = document.getElementById('leave-game');
+      const gameArea = document.getElementById('game-area');
+
+      // Load saved settings
+      const savedUsername = localStorage.getItem('school-username');
+      const savedFlag = localStorage.getItem('school-flag');
+      if (savedUsername) usernameInput.value = savedUsername;
+      if (savedFlag) flagSelect.value = savedFlag;
+
+      // Event listeners
+      connectBtn.addEventListener('click', connectToServer);
+      joinBtn.addEventListener('click', joinGame);
+      spectateBtn.addEventListener('click', spectateGame);
+      leaveBtn.addEventListener('click', leaveGame);
+
+      function updateStatus(message, type = 'info') {
+        statusEl.textContent = message;
+        statusEl.className = `status status-${type}`;
+      }
+
+      function connectToServer() {
+        if (isConnected) return;
+        
+        updateStatus('Connecting to server...', 'info');
+        
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = window.location.hostname;
+        const port = '3001'; // School server port
+        
+        try {
+          ws = new WebSocket(`${protocol}//${host}:${port}`);
+          
+          ws.onopen = () => {
+            console.log('Connected to school server');
+            isConnected = true;
+            updateStatus('Connected! Enter your name and join.', 'success');
+            connectBtn.style.display = 'none';
+            joinBtn.style.display = 'block';
+            spectateBtn.style.display = 'block';
+          };
+          
+          ws.onmessage = (event) => {
+            try {
+              const message = JSON.parse(event.data);
+              handleServerMessage(message);
+            } catch (error) {
+              console.error('Error parsing message:', error);
+            }
+          };
+          
+          ws.onclose = () => {
+            console.log('Disconnected from server');
+            isConnected = false;
+            isInGame = false;
+            updateStatus('Disconnected. Click to reconnect.', 'error');
+            connectBtn.style.display = 'block';
+            joinBtn.style.display = 'none';
+            spectateBtn.style.display = 'none';
+            gameArea.style.display = 'none';
+            
+            // Auto-reconnect after 3 seconds
+            setTimeout(() => {
+              if (!isConnected) connectToServer();
+            }, 3000);
+          };
+          
+          ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            updateStatus('Connection failed. Make sure server is running.', 'error');
+          };
+          
+        } catch (error) {
+          console.error('Failed to create WebSocket:', error);
+          updateStatus('Failed to connect. Check server.', 'error');
+        }
+      }
+
+      function handleServerMessage(message) {
+        switch (message.type) {
+          case 'gameState':
+            updateGameState(message.data);
+            break;
+          case 'error':
+            updateStatus(message.data.message || 'Server error', 'error');
+            break;
+          default:
+            console.log('Unknown message:', message.type);
+        }
+      }
+
+      function updateGameState(gameState) {
+        currentPlayers = gameState.players || [];
+        updatePlayersList();
+        
+        if (gameState.status === 'waiting') {
+          updateStatus(`Game lobby - ${gameState.playerCount || 0} players`, 'info');
+        } else if (gameState.status === 'starting') {
+          updateStatus('Game starting...', 'info');
+        } else if (gameState.status === 'running') {
+          updateStatus('Game in progress', 'success');
+        }
+      }
+
+      function updatePlayersList() {
+        if (currentPlayers.length === 0) {
+          playersSection.style.display = 'none';
+          return;
+        }
+        
+        playersSection.style.display = 'block';
+        playersListEl.innerHTML = '';
+        
+        currentPlayers.forEach(player => {
+          const playerEl = document.createElement('div');
+          playerEl.className = 'player-item';
+          
+          const flagEmoji = getFlagEmoji(player.flag);
+          playerEl.innerHTML = `
+            <span class="flag-display">${flagEmoji}</span>
+            <span>${player.name}${player.isSpectator ? ' (Spectator)' : ''}</span>
+          `;
+          playersListEl.appendChild(playerEl);
+        });
+      }
+
+      function getFlagEmoji(countryCode) {
+        const flags = {
+          'us': '🇺🇸', 'gb': '🇬🇧', 'fr': '🇫🇷', 'de': '🇩🇪',
+          'it': '🇮🇹', 'es': '🇪🇸', 'ca': '🇨🇦', 'au': '🇦🇺',
+          'jp': '🇯🇵', 'br': '🇧🇷', 'mx': '🇲🇽', 'in': '🇮🇳',
+          'cn': '🇨🇳', 'ru': '🇷🇺'
+        };
+        return flags[countryCode] || '🏳️';
+      }
+
+      function joinGame() {
+        const username = usernameInput.value.trim();
+        const flag = flagSelect.value;
+        
+        if (!username) {
+          alert('Please enter your name');
+          return;
+        }
+        
+        if (!isConnected) {
+          alert('Not connected to server');
+          return;
+        }
+        
+        // Save settings
+        localStorage.setItem('school-username', username);
+        localStorage.setItem('school-flag', flag);
+        
+        // Send join message
+        ws.send(JSON.stringify({
+          type: 'joinGame',
+          data: { playerName: username, playerFlag: flag }
+        }));
+        
+        isInGame = true;
+        gameArea.style.display = 'block';
+        updateStatus('Joined game!', 'success');
+      }
+
+      function spectateGame() {
+        const username = usernameInput.value.trim() || 'Spectator';
+        const flag = flagSelect.value;
+        
+        if (!isConnected) {
+          alert('Not connected to server');
+          return;
+        }
+        
+        ws.send(JSON.stringify({
+          type: 'spectateGame',
+          data: { playerName: username, playerFlag: flag }
+        }));
+        
+        isInGame = true;
+        gameArea.style.display = 'block';
+        updateStatus('Spectating game!', 'success');
+      }
+
+      function leaveGame() {
+        if (isInGame && ws) {
+          ws.send(JSON.stringify({ type: 'leaveGame' }));
+        }
+        
+        isInGame = false;
+        gameArea.style.display = 'none';
+        updateStatus('Left game', 'info');
+      }
+
+      // Auto-connect on page load
+      setTimeout(connectToServer, 500);
+    </script>
+  </body>
+</html>

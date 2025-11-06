@@ -1,11 +1,15 @@
-const path = require("path");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-const CopyWebpackPlugin = require("copy-webpack-plugin");
-const webpack = require("webpack");
+import path from "path";
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import CopyWebpackPlugin from "copy-webpack-plugin";
+import webpack from "webpack";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const isProduction = process.env.NODE_ENV === "production";
 
-module.exports = {
+export default {
   entry: "./src/client/SchoolMain.ts",
   mode: isProduction ? "production" : "development",
   devtool: isProduction ? "source-map" : "eval-source-map",
