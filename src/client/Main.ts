@@ -199,16 +199,18 @@ class Client {
       }
     });
 
-    // School Edition Button
+    // School Edition Button - Always show in development
     const schoolModeButton = document.getElementById("school-mode-button");
     if (schoolModeButton) {
-      // Show school button if running on localhost (development) or if school server is detected
-      if (window.location.hostname === 'localhost' || window.location.port === '3001') {
-        schoolModeButton.style.display = 'block';
-      }
+      // Always show school button (remove condition)
+      schoolModeButton.style.display = 'block';
       
       schoolModeButton.addEventListener("click", () => {
-        this.schoolLobbyModal.open();
+        if (this.schoolLobbyModal) {
+          this.schoolLobbyModal.open();
+        } else {
+          console.error("School lobby modal not found");
+        }
       });
     }
 
